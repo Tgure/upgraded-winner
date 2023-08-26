@@ -1,0 +1,7 @@
+{
+  "name": "WarMultiplayerGame",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

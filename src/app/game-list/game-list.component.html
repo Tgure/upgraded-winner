@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>Available Games</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ion-list *ngFor="let game of games; let i = index" lines="none">
+    <ion-item (click)="confirm(game)" detail="true">
+      Game {{i + 1}}
+    </ion-item>
+  </ion-list>
+</ion-content>

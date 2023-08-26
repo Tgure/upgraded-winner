@@ -1,0 +1,53 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>War</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">War</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div id="container">
+    <div *ngIf="!gameId">
+      <p>No game currently in progress!</p>
+      <ion-button (click)="startGame()">Start!</ion-button>
+      <ion-button (click)="joinGame()" color="secondary">Join!</ion-button>
+    </div>
+    <div *ngIf="gameId">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Player One</ion-card-title>
+          <ion-card-subtitle>Total Cards: {{gameState?.playerOnesCardCount}}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <img [src]="!(gameState?.playerOnesDraw?.cards?.length > 0) ? 'https://deckofcardsapi.com/static/img/back.png' : gameState?.playerOnesDraw?.cards[0]?.image" alt="card"
+               class="card"/>
+        </ion-card-content>
+        <ion-button (click)="draw()" *ngIf="userId === 'playerOne'" [disabled]="gameState?.playerOnesDraw?.cards?.length > 0"
+                    fill="clear">Draw
+        </ion-button>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Player Two</ion-card-title>
+          <ion-card-subtitle>Total Cards: {{gameState?.playerTwosCardCount}}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <img [src]="!(gameState?.playerTwosDraw?.cards?.length > 0) ? 'https://deckofcardsapi.com/static/img/back.png' : gameState?.playerTwosDraw?.cards[0]?.image" alt="card"
+               class="card"/>
+        </ion-card-content>
+        <ion-button (click)="draw()" *ngIf="userId === 'playerTwo'" [disabled]="gameState?.playerTwosDraw?.cards?.length > 0"
+                    fill="clear">Draw
+        </ion-button>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
