@@ -8,7 +8,7 @@ ion-menu-button {
   left: 0;
   right: 0;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-45%);
 }
 
 #container strong {
@@ -27,7 +27,26 @@ ion-menu-button {
   text-decoration: none;
 }
 
-.card {
+.card-container {
+  display: flex;
+  justify-content: center;
+  position: relative;
   height: 250px;
-  width: auto;
+
+  .card {
+    width: auto;
+    $OFFSET: 25px;
+    height: 225px;
+    text-align: center;
+
+    @for $i from 0 to 5 {
+
+      &:nth-child(#{$i + 1}) {
+
+        position: absolute;
+        transform: translateX(calc(#{$i} * #{$OFFSET}));
+      }
+    }
+  }
 }
+

@@ -42,8 +42,8 @@ export class GameService {
     this.firestoreService.gameState.subscribe((gameState) => {
       this.gameState = gameState;
       // If both players have drawn, check match status for winner
-      if (this.gameState?.playerOnesDraw?.cards?.length > 0 && this.gameState?.playerTwosDraw?.cards?.length > 0) {
-        this.checkMatch(this.gameState.playerOnesDraw.cards[0], this.gameState.playerTwosDraw.cards[0]);
+      if (this.gameState?.playerOnesDraw?.drawComplete && this.gameState?.playerTwosDraw?.drawComplete) {
+        this.checkMatch(this.gameState.playerOnesDraw.cards[this.gameState?.playerOnesDraw?.cards?.length - 1], this.gameState.playerTwosDraw.cards[this.gameState?.playerTwosDraw?.cards?.length - 1]);
       }
     })
   }
@@ -104,9 +104,11 @@ export class GameService {
       playerOne: userId,
       playerTwo: null,
       playerOnesDraw: {
+        drawComplete: false,
         cards: []
       },
       playerTwosDraw: {
+        drawComplete: false,
         cards: []
       },
       playerOnesCardCount: 26,
@@ -170,6 +172,7 @@ export class GameService {
   draw() {
     this.deckService.drawCardFromPile(this.deckId, this.userId, 1).subscribe({
       next: (draw) => {
+        this.gameState[`${this.userId}sDraw`].drawComplete = true;
         this.gameState[`${this.userId}sDraw`].cards = [...this.gameState[`${this.userId}sDraw`].cards, ...draw.cards];
         this.firestoreService.updateDocument('games', this.gameId, this.gameState).then((res) => {
           // Success
@@ -188,13 +191,24 @@ export class GameService {
     const player1Rank = this.cardRanks[player1.value];
     const player2Rank = this.cardRanks[player2.value];
     if (player1Rank > player2Rank) {
-      this.presentToast('Player One Won this Round!', 'middle', 1500, 'success');
-      this.processWinner('playerOne');
+      this.presentToast('Player One Won this Round!', 'middle', 1500, 'success').finally(() => {
+        this.processWinner('playerOne');
+      });
     } else if (player1Rank < player2Rank) {
-      this.presentToast('Player Two Won this Round!', 'middle', 1500, 'success');
-      this.processWinner('playerTwo');
+      this.presentToast('Player Two Won this Round!', 'middle', 1500, 'success').finally(() => {
+        this.processWinner('playerTwo');
+      });
     } else {
-      this.presentToast(`Tie! Draw Again!`, 'bottom', 1500, 'warning');
+      this.presentToast(`Tie! Draw Again!`, 'middle', 1500, 'warning').finally(() => {
+        this.gameState.playerOnesDraw.drawComplete = false;
+        this.gameState.playerTwosDraw.drawComplete = false;
+        this.firestoreService.updateDocument('games', this.gameId, this.gameState).then(() => {
+          // Success
+        }, (err) => {
+          // TODO: Implement proper error handling and notification to user if relevant
+          console.error(err);
+        });
+      });
     }
   }
 
@@ -220,12 +234,14 @@ export class GameService {
               this.gameState.playerTwosCardCount = res.piles['playerTwo'].remaining;
               this.gameState.playerOnesDraw.cards = [];
               this.gameState.playerTwosDraw.cards = [];
+              this.gameState.playerOnesDraw.drawComplete = false;
+              this.gameState.playerTwosDraw.drawComplete = false;
               this.firestoreService.updateDocument('games', this.gameId, this.gameState).then(() => {
                 // Success
               }, (err) => {
                 // TODO: Implement proper error handling and notification to user if relevant
                 console.error(err);
-              })
+              });
             },
             error: (err) => {
               // TODO: Implement proper error handling and notification to user if relevant
