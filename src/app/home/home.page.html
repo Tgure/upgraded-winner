@@ -15,10 +15,12 @@
   </ion-header>
 
   <div id="container">
-    <div *ngIf="!gameId">
+    <div *ngIf="!gameId" class="no-game">
       <p>No game currently in progress!</p>
-      <ion-button (click)="startGame()">Start!</ion-button>
-      <ion-button (click)="joinGame()" color="secondary">Join!</ion-button>
+      <div>
+        <ion-button (click)="startGame()">Start!</ion-button>
+        <ion-button (click)="joinGame()" color="secondary">Join!</ion-button>
+      </div>
     </div>
     <div *ngIf="gameId">
       <ion-card>
