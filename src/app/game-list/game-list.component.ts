@@ -9,7 +9,8 @@ import {ModalController} from "@ionic/angular";
 export class GameListComponent {
   public games: any[] | undefined;
 
-  constructor(private modalCtrl: ModalController) {}
+  constructor(private modalCtrl: ModalController) {
+  }
 
   cancel() {
     return this.modalCtrl.dismiss(null, 'cancel');

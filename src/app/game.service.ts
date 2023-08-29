@@ -145,7 +145,7 @@ export class GameService {
       data.data.playerTwo = 'playerTwo';
       this.userId = data.data.playerTwo;
       this.userIdSub.next(this.userId);
-      this.firestoreService.updateDocument('games', data.id, data.data).then((res) => {
+      this.firestoreService.updateDocument('games', data.id, data.data).then(() => {
         this.gameId = data.id;
         this.gameIdSub.next(this.gameId);
         this.gameInProgress.next(true);
@@ -184,7 +184,7 @@ export class GameService {
       next: (draw) => {
         this.gameState[`${this.userId}sDraw`].drawComplete = true;
         this.gameState[`${this.userId}sDraw`].cards = [...this.gameState[`${this.userId}sDraw`].cards, ...draw.cards];
-        this.firestoreService.updateDocument('games', this.gameId, this.gameState).then((res) => {
+        this.firestoreService.updateDocument('games', this.gameId, this.gameState).then(() => {
           // Success
         }, (err) => {
           this.presentAlert(err);
@@ -229,7 +229,7 @@ export class GameService {
         if (res.piles[pile].remaining === 52) {
           this.presentToast(`Game Over! Winner is: ${pile}`, 'middle', 5000, 'success');
           // Delete game from DB
-          this.firestoreService.deleteDocument('games', this.gameId).then((res) => {
+          this.firestoreService.deleteDocument('games', this.gameId).then(() => {
             this.gameState = null;
           }, (err) => {
             this.presentAlert(err);

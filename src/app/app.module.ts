@@ -42,4 +42,5 @@ import {ErrorInterceptor} from "./error-interceptor";
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+}

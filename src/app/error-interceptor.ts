@@ -18,10 +18,10 @@ export class ErrorInterceptor implements HttpInterceptor {
         catchError((error: HttpErrorResponse) => {
           // Build error message
           let errorMsg = '';
-          if (error.error instanceof ErrorEvent) {
-            errorMsg = `Error: ${error.error.message}`;
+          if (error?.error instanceof ErrorEvent) {
+            errorMsg = `Error: ${error?.error?.message}`;
           } else {
-            errorMsg = `Error Code: ${error.status},  Message: ${error.message}`;
+            errorMsg = `Error Code: ${error?.status},  Message: ${error?.message}`;
           }
           return throwError(() => errorMsg);
         })
