@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject, forkJoin} from "rxjs";
 import {DeckService} from "./deck.service";
 import {FirestoreService} from "./firestore.service";
-import {ModalController, ToastController} from "@ionic/angular";
+import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {GameListComponent} from "./game-list/game-list.component";
 
 interface Card {
@@ -37,13 +37,22 @@ export class GameService {
     'ACE': 14,
   };
 
-  constructor(private deckService: DeckService, private firestoreService: FirestoreService, private modalCtrl: ModalController, private toastController: ToastController) {
+  constructor(private deckService: DeckService, private firestoreService: FirestoreService,
+              private modalCtrl: ModalController, private toastController: ToastController,
+              private alertController: AlertController) {
     // Subscribe to game state so updates are propagated
     this.firestoreService.gameState.subscribe((gameState) => {
       this.gameState = gameState;
       // If both players have drawn, check match status for winner
       if (this.gameState?.playerOnesDraw?.drawComplete && this.gameState?.playerTwosDraw?.drawComplete) {
         this.checkMatch(this.gameState.playerOnesDraw.cards[this.gameState?.playerOnesDraw?.cards?.length - 1], this.gameState.playerTwosDraw.cards[this.gameState?.playerTwosDraw?.cards?.length - 1]);
+      }
+      // If player surrenders reset state
+      if (this.gameState?.surrenderer) {
+        if (this.gameState?.surrenderer !== this.userId) {
+          this.presentToast('Other player has surrendered, You are the winner!', 'middle', 2000, 'success');
+        }
+        this.resetState();
       }
     })
   }
@@ -66,30 +75,33 @@ export class GameService {
         });
       },
       error: (err) => {
-        // TODO: Implement proper error handling and notification to user if relevant
-        console.error(err);
+        this.presentAlert(err);
       }
     });
   }
 
   surrender() {
     // If in game and user wants to quit surrender match to other player and notify them they won
-    this.firestoreService.deleteDocument('games', this.gameId).then(() => {
-      // Success
-      this.gameId = null;
-      this.gameIdSub.next(this.gameId);
-      this.gameInProgress.next(false);
-      this.firestoreService.closeSubscription();
-    }, (err) => {
-      console.error(err);
+    this.presentAlert('Are you sure you want to surrender the game?', true).then((res) => {
+      if (res === 'confirm') {
+        this.gameState.surrenderer = this.userId;
+        const gameToBeDeleted = this.gameId;
+        this.firestoreService.updateDocument('games', this.gameId, this.gameState).then(() => {
+          this.firestoreService.deleteDocument('games', gameToBeDeleted).catch((err) => {
+            this.presentAlert(err);
+          });
+        }, (err) => {
+          this.presentAlert(err);
+        });
+      }
     });
   }
 
   joinGame() {
     this.firestoreService.getDocuments('games').then((docs: any) => {
-      this.openGameSelectModal(docs.filter((d: any) => !d.playerTwo));
+      this.openGameSelectModal(docs.filter((doc: any) => doc.data.playerTwo === null));
     }, (err) => {
-      console.error(err);
+      this.presentAlert(err);
     });
   }
 
@@ -157,14 +169,12 @@ export class GameService {
             this.listenToGame();
           },
           error: (err) => {
-            // TODO: Implement proper error handling and notification to user if relevant
-            console.error(err);
+            this.presentAlert(err);
           }
         })
       },
       error: (err) => {
-        // TODO: Implement proper error handling and notification to user if relevant
-        console.error(err);
+        this.presentAlert(err);
       }
     });
   }
@@ -177,12 +187,11 @@ export class GameService {
         this.firestoreService.updateDocument('games', this.gameId, this.gameState).then((res) => {
           // Success
         }, (err) => {
-          console.error(err);
+          this.presentAlert(err);
         });
       },
       error: (err) => {
-        // TODO: Implement proper error handling and notification to user if relevant
-        console.error(err);
+        this.presentAlert(err);
       }
     });
   }
@@ -205,8 +214,7 @@ export class GameService {
         this.firestoreService.updateDocument('games', this.gameId, this.gameState).then(() => {
           // Success
         }, (err) => {
-          // TODO: Implement proper error handling and notification to user if relevant
-          console.error(err);
+          this.presentAlert(err);
         });
       });
     }
@@ -224,8 +232,7 @@ export class GameService {
           this.firestoreService.deleteDocument('games', this.gameId).then((res) => {
             this.gameState = null;
           }, (err) => {
-            // TODO: Implement proper error handling and notification to user if relevant
-            console.error(err);
+            this.presentAlert(err);
           })
         } else {
           this.deckService.shufflePile(this.deckId, pile).subscribe({
@@ -239,20 +246,17 @@ export class GameService {
               this.firestoreService.updateDocument('games', this.gameId, this.gameState).then(() => {
                 // Success
               }, (err) => {
-                // TODO: Implement proper error handling and notification to user if relevant
-                console.error(err);
+                this.presentAlert(err);
               });
             },
             error: (err) => {
-              // TODO: Implement proper error handling and notification to user if relevant
-              console.error(err);
+              this.presentAlert(err);
             }
           })
         }
       },
       error: (err) => {
-        // TODO: Implement proper error handling and notification to user if relevant
-        console.error(err);
+        this.presentAlert(err);
       }
     })
   }
@@ -270,5 +274,38 @@ export class GameService {
 
   listenToGame() {
     this.firestoreService.listenToGame(this.gameId);
+  }
+
+  async presentAlert(errorMsg: string, confirm?: boolean) {
+    const buttons = [
+      !confirm ?
+        'OK'
+        :
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+      {
+        text: 'OK',
+        role: 'confirm',
+      }
+    ];
+    const alert = await this.alertController.create({
+      header: 'Alert',
+      message: errorMsg,
+      buttons: buttons,
+    });
+
+    alert.present();
+
+    const {role} = await alert.onWillDismiss();
+    return role;
+  }
+
+  resetState() {
+    this.gameId = null;
+    this.gameIdSub.next(this.gameId);
+    this.gameInProgress.next(false);
+    this.firestoreService.closeSubscription();
   }
 }

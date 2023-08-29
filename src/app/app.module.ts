@@ -17,8 +17,9 @@ import {getMessaging, provideMessaging} from '@angular/fire/messaging';
 import {getPerformance, providePerformance} from '@angular/fire/performance';
 import {getRemoteConfig, provideRemoteConfig} from '@angular/fire/remote-config';
 import {getStorage, provideStorage} from '@angular/fire/storage';
-import {HttpClientModule} from "@angular/common/http";
+import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {GameListComponent} from "./game-list/game-list.component";
+import {ErrorInterceptor} from "./error-interceptor";
 
 @NgModule({
   declarations: [AppComponent, GameListComponent],
@@ -33,7 +34,12 @@ import {GameListComponent} from "./game-list/game-list.component";
     provideRemoteConfig(() => getRemoteConfig()), provideStorage(() => getStorage()),
     HttpClientModule
   ],
-  providers: [{provide: RouteReuseStrategy, useClass: IonicRouteStrategy}, ScreenTrackingService, UserTrackingService],
+  providers: [
+    {provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true},
+    {provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
+    ScreenTrackingService,
+    UserTrackingService
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
