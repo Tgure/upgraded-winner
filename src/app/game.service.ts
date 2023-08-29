@@ -277,23 +277,29 @@ export class GameService {
   }
 
   async presentAlert(errorMsg: string, confirm?: boolean) {
-    const buttons = [
-      !confirm ?
-        'OK'
-        :
+    // const confirmButtons = [
+    //     {
+    //       text: 'Cancel',
+    //       role: 'cancel',
+    //     },
+    //     {
+    //       text: 'OK',
+    //       role: 'confirm',
+    //     }
+    // ];
+    const alert = await this.alertController.create({
+      header: 'Alert',
+      message: errorMsg,
+      buttons: confirm ? [
         {
           text: 'Cancel',
           role: 'cancel',
         },
-      {
-        text: 'OK',
-        role: 'confirm',
-      }
-    ];
-    const alert = await this.alertController.create({
-      header: 'Alert',
-      message: errorMsg,
-      buttons: buttons,
+        {
+          text: 'OK',
+          role: 'confirm',
+        }
+      ] : ['OK'],
     });
 
     alert.present();

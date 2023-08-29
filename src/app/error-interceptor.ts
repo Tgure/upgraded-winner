@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {catchError, map, Observable, retry, throwError, timer} from 'rxjs';
 
-export const maxRetries = 5;
+export const maxRetries = 0;
 export const delayMs = 2000;
 
 @Injectable()

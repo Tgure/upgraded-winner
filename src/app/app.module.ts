@@ -38,7 +38,8 @@ import {ErrorInterceptor} from "./error-interceptor";
     {provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true},
     {provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
     ScreenTrackingService,
-    UserTrackingService
+    UserTrackingService,
+    ErrorInterceptor
   ],
   bootstrap: [AppComponent],
 })
